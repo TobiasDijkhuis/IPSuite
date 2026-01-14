@@ -1,3 +1,5 @@
+import logging
+
 import ase
 import rdkit2ase
 import tqdm
@@ -5,6 +7,8 @@ import zntrack
 
 from ipsuite import base
 from ipsuite.geometry import BarycenterMapping
+
+log = logging.getLogger(__name__)
 
 
 class AllowedStructuresFilter(base.IPSNode):
@@ -45,7 +49,7 @@ class AllowedStructuresFilter(base.IPSNode):
                 if self.fail:
                     raise ValueError(f"Outlier found at index {idx} for molecule {mol}")
                 else:
-                    print(f"Outlier found at index {idx} for molecule {mol}")
+                    log.info(f"Outlier found at index {idx} for molecule {mol}")
                 outliers_set.add(idx)
         self.outliers = list(outliers_set)
 

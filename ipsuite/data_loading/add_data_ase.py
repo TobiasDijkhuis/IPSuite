@@ -9,6 +9,7 @@ import h5py
 import tqdm
 import znh5md
 import zntrack
+from ase import Atoms
 
 from ipsuite import base
 
@@ -18,24 +19,30 @@ log = logging.getLogger(__name__)
 def load_data(
     file: typing.Union[str, pathlib.Path],
     lines_to_read: int = None,
-):
-    """Add data to the database.
+    disable_pbar: bool = False,
+) -> list[Atoms]:
+    """Load ase atoms from file.
 
     Parameters
     ----------
-    database: Database
-        instance of a database to add data to
     file: str|Path
         path to the file that should be added to the database
     lines_to_read: int, optional
         maximal number of lines/configurations to read, None for read all
+    disable_pbar: bool, default = False
+        whether to disable the progress bar
     """
     if isinstance(file, str):
         file = pathlib.Path(file)
 
     frames = []
     for config, atoms in enumerate(
-        tqdm.tqdm(ase.io.iread(file.as_posix()), desc="Reading File", ncols=70)
+        tqdm.tqdm(
+            ase.io.iread(file.as_posix()),
+            desc="Reading File",
+            ncols=70,
+            disable=disable_pbar,
+        )
     ):
         if lines_to_read is not None and config >= lines_to_read:
             break
@@ -52,6 +59,8 @@ class AddData(base.IPSNode):
         Path to the file containing atomic configurations.
     lines_to_read : int, optional
         Maximum number of configurations to read. If None, reads all.
+    disable_pbar: bool, default = False
+        whether to disable to progress bar
 
     Attributes
     ----------
@@ -69,6 +78,7 @@ class AddData(base.IPSNode):
 
     file: typing.Union[str, pathlib.Path] = zntrack.deps_path()
     lines_to_read: int | None = zntrack.params(None)
+    disable_pbar: bool = False
     frames_path: pathlib.Path = zntrack.outs_path(zntrack.nwd / "frames.h5")
 
     def __post_init__(self):
@@ -82,7 +92,11 @@ class AddData(base.IPSNode):
         """ZnTrack run method."""
         if self.lines_to_read == -1:  # backwards compatibility
             self.lines_to_read = None
-        frames = load_data(file=self.file, lines_to_read=self.lines_to_read)
+        frames = load_data(
+            file=self.file,
+            lines_to_read=self.lines_to_read,
+            disable_pbar=self.disable_pbar,
+        )
         io = znh5md.IO(self.frames_path)
         io.extend(frames)
 

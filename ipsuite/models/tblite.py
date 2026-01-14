@@ -1,5 +1,6 @@
 import dataclasses
 import logging
+from typing import Any
 
 log = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class TBLiteModel:
     verbosity: int = 0
     charge: int = 0
     multiplicity: int = 1
+    kwargs: dict[str, Any] = dataclasses.field(default_factory=dict)
 
     def get_calculator(self, **kwargs):
         """Get an xtb ase calculator."""
@@ -59,5 +61,6 @@ class TBLiteModel:
             verbosity=self.verbosity,
             charge=self.charge,
             multiplicity=self.multiplicity,
+            **self.kwargs,
         )
         return calc

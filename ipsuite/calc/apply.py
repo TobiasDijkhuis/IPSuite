@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 
@@ -10,6 +11,8 @@ from laufband import Laufband
 
 from ipsuite.interfaces import NodeWithCalculator
 from ipsuite.utils.ase_sim import freeze_copy_atoms
+
+log = logging.getLogger(__name__)
 
 
 class ApplyCalculator(zntrack.Node):
@@ -130,9 +133,17 @@ class ApplyCalculator(zntrack.Node):
 
         calc = self.model.get_calculator(directory=calc_dir)
 
-        for atoms in worker:
-            self._process_atoms(atoms, calc)
-            frames.append(freeze_copy_atoms(atoms))
+        for atoms_idx, atoms in enumerate(worker):
+            try:
+                self._process_atoms(atoms, calc)
+                frames.append(freeze_copy_atoms(atoms))
+            except ase.calculators.calculator.CalculationFailed as e:
+                log.warning(
+                    "Calculation of Atoms with index %i failed due to error:",
+                    atoms_idx,
+                )
+                log.warning(e)
+                log.warning("This structure will not be added to the frames.")
             if self.dump_rate is not None:
                 if len(frames) % self.dump_rate == 0:
                     with worker.lock:
