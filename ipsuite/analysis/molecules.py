@@ -28,6 +28,10 @@ class AllowedStructuresFilter(base.IPSNode):
     cutoffs : dict[str, float] | None, optional
         The cutoffs for each element.
         If None, use the `ase.data.covalent_radii`. Default: None
+    fail: bool, default = False
+        whether to raise an error if a non-allowed molecule is found
+    disable_pbar: bool, default = False
+        whether to disable the progress bar
     """
 
     data: list[ase.Atoms] = zntrack.deps()
@@ -35,6 +39,7 @@ class AllowedStructuresFilter(base.IPSNode):
     smiles: list[str] = zntrack.params(default_factory=list)
     cutoffs: dict[str, float] | None = zntrack.params(None)
     fail: bool = zntrack.params(False)
+    disable_pbar: bool = False
 
     outliers: list[int] = zntrack.outs()
 
@@ -42,7 +47,7 @@ class AllowedStructuresFilter(base.IPSNode):
         molecules = self.molecules + [rdkit2ase.smiles2atoms(s) for s in self.smiles]
         mapping = BarycenterMapping(cutoffs=self.cutoffs)
         outliers_set = set()
-        for idx, atoms in enumerate(tqdm.tqdm(self.data)):
+        for idx, atoms in enumerate(tqdm.tqdm(self.data, disable=self.disable_pbar)):
             _, mols = mapping.forward_mapping(atoms)
             for mol in mols:
                 # check if the atomic numbers are the same

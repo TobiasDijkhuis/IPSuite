@@ -38,6 +38,8 @@ class ApplyCalculator(zntrack.Node):
         If True, adds the new calculator results to existing calculations.
         If False (default), replaces any existing calculator results.
         This is useful for adding corrections (e.g., D3 dispersion) to existing models.
+    disable_pbar: bool, default = False
+        whether to disable the progress bar
 
     Laufband Configuration
     ----------------------
@@ -70,6 +72,7 @@ class ApplyCalculator(zntrack.Node):
     model: NodeWithCalculator = zntrack.deps()
     dump_rate: int | None = zntrack.params(1)
     additive: bool = zntrack.params(False)
+    disable_pbar: bool = False
 
     frames_path: pathlib.Path = zntrack.outs_path(zntrack.nwd / "frames.h5")
     model_outs: pathlib.Path = zntrack.outs_path(zntrack.nwd / "model")
@@ -125,6 +128,7 @@ class ApplyCalculator(zntrack.Node):
             db=f"sqlite:///{self.model_outs / 'laufband.sqlite'}",
             lock=Lock((self.model_outs / "laufband.lock").as_posix()),
             disabled=os.environ.get("LAUFBAND_DISABLED", "1") == "1",
+            tqdm_kwargs={"disable": self.disable_pbar},
         )
         # by default, we disable laufband for better performance
 
