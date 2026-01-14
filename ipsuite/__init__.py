@@ -1,6 +1,14 @@
 """The ipsuite package."""
 
 # <AUTOGEN_INIT>
+# IPSuite uses `lazy-loader` to only load the necessary subpackages and functions. To make sure that all the
+# functions and nodes are exposed to the API and static type checkers, `mkinit` can automatically generate
+# the `__init__.py` files. Before committing changes, please run (while in the `ipsuite` source directory)
+#
+#     mkinit --relative --lazy_loader_typed -w
+#
+# and add the changed `__init__.py` and `__init__.pyi` files to the commit.
+
 from ipsuite.utils.helpers import setup_ase
 from ipsuite.utils.logs import setup_logging
 
